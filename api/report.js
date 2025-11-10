@@ -6,9 +6,7 @@ export default async function handler(req, res) {
   }
 
   try {
-    const inputs = req.body;
-
-    // Optional: add a basic API usage limit
+    const inputs = req.body || {};
     const systemPrompt = `
 You are Pool ChemGPT, a professional pool water analysis assistant.
 Analyse the following pool readings and produce a clear treatment report:
@@ -42,8 +40,13 @@ Format as markdown with headings and bullet points.
     });
 
     const data = await response.json();
-    const report = data.choices?.[0]?.message?.content || "No response generated.";
-    res.status(200).send(report);
+    console.log("OpenAI response:", data);
+
+    if (!data.choices || !data.choices[0] || !data.choices[0].message) {
+      return res.status(200).send("No response generated.");
+    }
+
+    res.status(200).send(data.choices[0].message.content);
 
   } catch (error) {
     console.error("Error generating report:", error);
