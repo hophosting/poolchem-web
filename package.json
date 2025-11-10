@@ -1,0 +1,15 @@
+{
+  "name": "poolchem-vercel",
+  "version": "1.0.0",
+  "description": "PoolChem Assistant Web App with OpenAI treatment reports",
+  "main": "server.js",
+  "type": "module",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "dotenv": "^16.0.3",
+    "express": "^4.18.2",
+    "node-fetch": "^3.3.2"
+  }
+}
