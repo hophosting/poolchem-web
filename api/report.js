@@ -8,7 +8,7 @@ export default async function handler(req, res) {
   try {
     const inputs = req.body || {};
 
-    // 🧠 Build a clear system prompt
+    // 🧠 GPT System Prompt
     const systemPrompt = `
 You are Pool ChemGPT, an expert virtual pool water technician.
 Analyse the pool readings below and give a clear treatment report.
@@ -21,13 +21,21 @@ Respond in markdown with:
 - Keep tone professional and concise.
 `;
 
-    // 🧰 Send request to OpenAI
+    // 🧰 Build headers for OpenAI's new project-based key format
+    const headers = {
+      "Content-Type": "application/json",
+      "Authorization": `Bearer ${process.env.OPENAI_API_KEY}`,
+    };
+
+    // Include project ID if available
+    if (process.env.OPENAI_PROJECT_ID) {
+      headers["OpenAI-Project"] = process.env.OPENAI_PROJECT_ID;
+    }
+
+    // 🧾 Call OpenAI API
     const openaiRes = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
-      },
+      headers,
       body: JSON.stringify({
         model: "gpt-4o-mini",
         messages: [
@@ -39,10 +47,10 @@ Respond in markdown with:
       }),
     });
 
-    // Parse and debug response
     const data = await openaiRes.json();
     console.log("🔍 OpenAI response:", JSON.stringify(data, null, 2));
 
+    // Error handling
     if (openaiRes.status !== 200) {
       return res.status(openaiRes.status).json({
         error: data.error?.message || "OpenAI API error",
