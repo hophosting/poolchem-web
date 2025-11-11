@@ -20,7 +20,7 @@ Respond in markdown with:
 `;
 
     // ✅ Correct endpoint for project-based keys
-    const url = `https://api.openai.com/v1/projects/${process.env.proj_64u39ono87YjrHAQVTAoCIQn}/chat/completions`;
+    const url = `https://api.openai.com/v1/projects/${process.env.OPENAI_PROJECT_ID}/chat/completions`;
 
     console.log("🔑 Using project:", process.env.proj_64u39ono87YjrHAQVTAoCIQn);
     console.log("📦 Sending request to:", url);
