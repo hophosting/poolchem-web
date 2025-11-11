@@ -6,6 +6,16 @@ export default async function handler(req, res) {
   }
 
   try {
+    // 🧠 Check for required environment variables
+    if (!process.env.OPENAI_API_KEY) {
+      console.error("❌ Missing OPENAI_API_KEY");
+      return res.status(500).json({ error: "Missing OPENAI_API_KEY in environment" });
+    }
+    if (!process.env.OPENAI_PROJECT_ID) {
+      console.error("❌ Missing OPENAI_PROJECT_ID");
+      return res.status(500).json({ error: "Missing OPENAI_PROJECT_ID in environment" });
+    }
+
     const inputs = req.body || {};
 
     const systemPrompt = `
@@ -19,17 +29,17 @@ Respond in markdown with:
 - Sections: Analysis, Chemical Adjustments (dosages in g/mL based on pool_volume), Step-by-Step Actions, Maintenance Checklist.
 `;
 
-    // ✅ Correct endpoint for project-based keys
-    const url = `https://api.openai.com/v1/projects/${process.env.OPENAI_PROJECT_ID}/chat/completions`;
+    const projectId = process.env.OPENAI_PROJECT_ID;
+    const apiUrl = `https://api.openai.com/v1/projects/${projectId}/chat/completions`;
 
-    console.log("🔑 Using project:", process.env.proj_64u39ono87YjrHAQVTAoCIQn);
-    console.log("📦 Sending request to:", url);
+    console.log("🧩 Using Project ID:", projectId);
+    console.log("📡 Requesting:", apiUrl);
 
-    const openaiRes = await fetch(url, {
+    const openaiRes = await fetch(apiUrl, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${process.env.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}`,
+        Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
       },
       body: JSON.stringify({
         model: "gpt-4o-mini",
@@ -37,13 +47,13 @@ Respond in markdown with:
           { role: "system", content: systemPrompt },
           { role: "user", content: "Generate a pool chemical treatment report." },
         ],
-        temperature: 0.7,
         max_tokens: 800,
+        temperature: 0.7,
       }),
     });
 
     const data = await openaiRes.json();
-    console.log("🧾 OpenAI response:", JSON.stringify(data, null, 2));
+    console.log("🧾 OpenAI Response:", JSON.stringify(data, null, 2));
 
     if (!openaiRes.ok) {
       console.error("🚨 OpenAI API Error:", data);
@@ -56,7 +66,7 @@ Respond in markdown with:
     const report = data?.choices?.[0]?.message?.content?.trim() || "No response generated.";
     return res.status(200).send(report);
   } catch (err) {
-    console.error("💥 Server crashed with:", err);
+    console.error("💥 Server crashed:", err);
     return res.status(500).json({ error: err.message || "Server error" });
   }
 }
