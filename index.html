@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>PoolChem Assistant</title>
 
-  <!-- Markdown Renderer -->
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 
   <style>
@@ -82,4 +81,65 @@
   <h1>🏊 PoolChem Assistant</h1>
   <form id="poolForm">
     <label>Pool Volume (litres)</label>
-    <input type="number"
+    <input type="number" name="pool_volume" required placeholder="e.g. 29000" />
+
+    <label>Free Chlorine (FC)</label>
+    <input type="number" step="0.1" name="FC" required />
+
+    <label>Total Chlorine (TC)</label>
+    <input type="number" step="0.1" name="TC" required />
+
+    <label>pH</label>
+    <input type="number" step="0.1" name="pH" required />
+
+    <label>Total Alkalinity (TA)</label>
+    <input type="number" step="0.1" name="TA" required />
+
+    <label>Cyanuric Acid (CYA)</label>
+    <input type="number" step="0.1" name="CYA" required />
+
+    <label>Total Hardness (TH)</label>
+    <input type="number" step="0.1" name="TH" required />
+
+    <label>ORP (optional)</label>
+    <input type="number" step="1" name="ORP" />
+
+    <label>Phosphates (optional, ppb)</label>
+    <input type="number" step="1" name="phosphates" />
+
+    <button type="submit">Generate Report</button>
+  </form>
+
+  <div id="report"></div>
+
+  <script>
+    const form = document.getElementById("poolForm");
+    const reportDiv = document.getElementById("report");
+
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      reportDiv.innerHTML = "<p class='loading'>Generating report, please wait...</p>";
+
+      const formData = Object.fromEntries(new FormData(form).entries());
+
+      try {
+        const res = await fetch("/api/report", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(formData),
+        });
+
+        const text = await res.text();
+
+        if (res.ok) {
+          reportDiv.innerHTML = marked.parse(text);
+        } else {
+          reportDiv.innerHTML = `<p style='color:red;'>Error: ${text}</p>`;
+        }
+      } catch (err) {
+        reportDiv.innerHTML = `<p style='color:red;'>Server error: ${err.message}</p>`;
+      }
+    });
+  </script>
+</body>
+</html>
