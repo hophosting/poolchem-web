@@ -8,34 +8,29 @@ export default async function handler(req, res) {
   try {
     const inputs = req.body || {};
 
-    // 🧠 GPT System Prompt
+    // 🧠 Build the prompt
     const systemPrompt = `
-You are Pool ChemGPT, an expert virtual pool water technician.
-Analyse the pool readings below and give a clear treatment report.
+You are Pool ChemGPT, a professional pool-water technician.
+Analyse the pool readings below and generate a clear treatment report.
 
 ${JSON.stringify(inputs, null, 2)}
 
 Respond in markdown with:
 - Heading: "Pool Water Treatment Report"
-- Sections: Analysis, Chemical Adjustments (with dosages in g / mL based on pool_volume), Step-by-Step Actions, Maintenance Checklist
+- Sections: Analysis, Chemical Adjustments (dosages in g / mL based on pool_volume), Step-by-Step Actions, Maintenance Checklist.
 - Keep tone professional and concise.
 `;
 
-    // 🧰 Build headers for OpenAI's new project-based key format
-    const headers = {
-      "Content-Type": "application/json",
-      "Authorization": `Bearer ${process.env.OPENAI_API_KEY}`,
-    };
+    // 🧱 Use project-specific API endpoint
+    const apiUrl = `https://api.openai.com/v1/chat/completions?project=${process.env.OPENAI_PROJECT_ID}`;
 
-    // Include project ID if available
-    if (process.env.OPENAI_PROJECT_ID) {
-      headers["OpenAI-Project"] = process.env.OPENAI_PROJECT_ID;
-    }
-
-    // 🧾 Call OpenAI API
-    const openaiRes = await fetch("https://api.openai.com/v1/chat/completions", {
+    // 🧾 Send request to OpenAI
+    const openaiRes = await fetch(apiUrl, {
       method: "POST",
-      headers,
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
+      },
       body: JSON.stringify({
         model: "gpt-4o-mini",
         messages: [
@@ -50,11 +45,10 @@ Respond in markdown with:
     const data = await openaiRes.json();
     console.log("🔍 OpenAI response:", JSON.stringify(data, null, 2));
 
-    // Error handling
     if (openaiRes.status !== 200) {
-      return res.status(openaiRes.status).json({
-        error: data.error?.message || "OpenAI API error",
-      });
+      return res
+        .status(openaiRes.status)
+        .json({ error: data.error?.message || "OpenAI API error" });
     }
 
     const report =
